@@ -37,7 +37,7 @@ El nodo requiere librerías para procesar las imágenes y ejecutar la red neuron
 pip3 install opencv-python numpy ultralytics --break-system-packages
 ```
 
-### Lanzar y ejecutar el comportamiento
+## Lanzar y ejecutar el comportamiento
 * Paso 1: Lanzar la simulación (Gazebo + Nav2)
 
 ```bash
