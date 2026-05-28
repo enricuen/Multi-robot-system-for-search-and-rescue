@@ -41,18 +41,22 @@ pip3 install opencv-python numpy ultralytics --break-system-packages
 * Paso 1: Lanzar la simulación (Gazebo + Nav2)
 
 ```bash
+colcon build
 source install/setup.bash
 ros2 launch robot_bringup multi_robot_sim_nav2.launch.py
 ```
 * Paso 2: Ejecutar el nodo del comportamiento
 ```bash
 source install/setup.bash
-ros2 run <nombre_de_tu_paquete> swarm_search_rescue_node
+ros2 run robot_bringup esquinas.py
 ```
 * Interacción con el sistema
 
-Una vez en marcha, los robots se desplegarán de forma escalonada hacia sus esquinas de búsqueda. 
+Una vez en marcha, los robots se desplegarán de forma escalonada hacia sus esquinas de búsqueda.
+
 Al llegar frente a la víctima, el sistema pausará la terminal y preguntará:
-¿La persona está 'herida' o 'a salvo'?:
-A esto se debe contestar ```bash herida ``` o ```bash a salvo ```
+
+**¿La persona está 'herida' o 'a salvo'?:**
+
+A esto se debe contestar ```herida ``` o ``a salvo ```
 
