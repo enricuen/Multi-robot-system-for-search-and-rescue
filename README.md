@@ -21,11 +21,11 @@ Se ha de tener instalados los siguientes paquetes de ROS 2:
 
 ```bash
 sudo apt update
-sudo apt install ros-<tu_distro>-rclpy \
-                 ros-<tu_distro>-geometry-msgs \
-                 ros-<tu_distro>-sensor-msgs \
-                 ros-<tu_distro>-nav2-msgs \
-                 ros-<tu_distro>-tf2-ros \
-                 ros-<tu_distro>-cv-bridge \
-                 ros-<tu_distro>-navigation2 \
-                 ros-<tu_distro>-nav2-bringup
+sudo apt install ros-jazzy-rclpy \
+                 ros-jazzy-geometry-msgs \
+                 ros-jazzy-sensor-msgs \
+                 ros-jazzy-nav2-msgs \
+                 ros-jazzy-tf2-ros \
+                 ros-jazzy-cv-bridge \
+                 ros-jazzy-navigation2 \
+                 ros-jazzy-nav2-bringup
