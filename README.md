@@ -58,5 +58,5 @@ Al llegar frente a la víctima, el sistema pausará la terminal y preguntará:
 
 **¿La persona está 'herida' o 'a salvo'?:**
 
-A esto se debe contestar ```herida``` o ``a salvo```
+A esto se debe contestar ```herida``` o ```a salvo```
 
