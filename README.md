@@ -35,3 +35,24 @@ El nodo requiere librerías para procesar las imágenes y ejecutar la red neuron
 
 ```bash
 pip3 install opencv-python numpy ultralytics --break-system-packages
+```
+
+### Lanzar y ejecutar el comportamiento
+* Paso 1: Lanzar la simulación (Gazebo + Nav2)
+
+```bash
+source install/setup.bash
+ros2 launch robot_bringup multi_robot_sim_nav2.launch.py
+```
+* Paso 2: Ejecutar el nodo del comportamiento
+```bash
+source install/setup.bash
+ros2 run <nombre_de_tu_paquete> swarm_search_rescue_node
+```
+* Interacción con el sistema
+
+Una vez en marcha, los robots se desplegarán de forma escalonada hacia sus esquinas de búsqueda. 
+Al llegar frente a la víctima, el sistema pausará la terminal y preguntará:
+¿La persona está 'herida' o 'a salvo'?:
+A esto se debe contestar ```bash herida ``` o ```bash a salvo ```
+
