@@ -7,7 +7,8 @@ El sistema combina navegación autónoma descentralizada (**Nav2**), visión art
 * **Arquitectura multiagente:** Despliegue de un enjambre escalable coordinado mediante una única máquina de estados descentralizada.
 * **Visión artificial local:** Integración de **YOLOv8** en cada nodo para la detección visual de víctimas (clase `person`) en tiempo real, generando un error de seguimiento (*Homing*).
 * **Navegación autónoma y evasión:** Uso de **Nav2** para la planificación de rutas globales hacia objetivos y un sistema de evasión puramente reactivo (LIDAR) como freno de emergencia anti-colisiones.
-* **Protocolos interactivos de rescate:** * *Aseguramiento:* Formación de un perímetro de vigilancia alrededor de víctimas a salvo.
+* **Protocolos interactivos de rescate:**
+    * *Aseguramiento:* Formación de un perímetro de vigilancia alrededor de víctimas a salvo.
     * *Emergencia:* Despliegue automático y en solitario del "Robot ambulancia" hacia coordenadas de personas heridas.
 
 ## Requisitos previos
