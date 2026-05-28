@@ -1,0 +1,91 @@
+<?xml version="1.0" ?>
+<sdf version="1.8">
+  <world name="complex_warehouse">
+    <physics name="1ms" type="ignored">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+    <plugin filename="gz-sim-physics-system" name="gz::sim::systems::Physics"/>
+    <plugin filename="gz-sim-user-commands-system" name="gz::sim::systems::UserCommands"/>
+    <plugin filename="gz-sim-scene-broadcaster-system" name="gz::sim::systems::SceneBroadcaster"/>
+    <plugin filename="gz-sim-sensors-system" name="gz::sim::systems::Sensors">
+      <render_engine>ogre2</render_engine>
+    </plugin>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision"><geometry><plane><normal>0 0 1</normal><size>100 100</size></plane></geometry></collision>
+        <visual name="visual">
+          <geometry><plane><normal>0 0 1</normal><size>100 100</size></plane></geometry>
+          <material><ambient>0.8 0.8 0.8 1</ambient><diffuse>0.8 0.8 0.8 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- PAREDES EXTERIORES DEL ALMACÉN (30x30 metros) -->
+    <model name="outer_walls">
+      <static>true</static>
+      <link name="link">
+        <visual name="v1"><pose>0 15 1 0 0 0</pose><geometry><box><size>30 0.5 2</size></box></geometry><material><ambient>0.3 0.3 0.3 1</ambient></material></visual>
+        <collision name="c1"><pose>0 15 1 0 0 0</pose><geometry><box><size>30 0.5 2</size></box></geometry></collision>
+        
+        <visual name="v2"><pose>0 -15 1 0 0 0</pose><geometry><box><size>30 0.5 2</size></box></geometry><material><ambient>0.3 0.3 0.3 1</ambient></material></visual>
+        <collision name="c2"><pose>0 -15 1 0 0 0</pose><geometry><box><size>30 0.5 2</size></box></geometry></collision>
+        
+        <visual name="v3"><pose>15 0 1 0 0 1.5708</pose><geometry><box><size>30 0.5 2</size></box></geometry><material><ambient>0.3 0.3 0.3 1</ambient></material></visual>
+        <collision name="c3"><pose>15 0 1 0 0 1.5708</pose><geometry><box><size>30 0.5 2</size></box></geometry></collision>
+        
+        <visual name="v4"><pose>-15 0 1 0 0 1.5708</pose><geometry><box><size>30 0.5 2</size></box></geometry><material><ambient>0.3 0.3 0.3 1</ambient></material></visual>
+        <collision name="c4"><pose>-15 0 1 0 0 1.5708</pose><geometry><box><size>30 0.5 2</size></box></geometry></collision>
+      </link>
+    </model>
+
+    <!-- HABITACIONES Y PASILLOS INTERIORES -->
+    <model name="inner_walls">
+      <static>true</static>
+      <link name="link">
+        <!-- Pasillos horizontales -->
+        <visual name="v1"><pose>-5 5 1 0 0 0</pose><geometry><box><size>10 0.5 2</size></box></geometry><material><ambient>0.6 0.5 0.4 1</ambient></material></visual>
+        <collision name="c1"><pose>-5 5 1 0 0 0</pose><geometry><box><size>10 0.5 2</size></box></geometry></collision>
+        
+        <visual name="v2"><pose>8 5 1 0 0 0</pose><geometry><box><size>14 0.5 2</size></box></geometry><material><ambient>0.6 0.5 0.4 1</ambient></material></visual>
+        <collision name="c2"><pose>8 5 1 0 0 0</pose><geometry><box><size>14 0.5 2</size></box></geometry></collision>
+        
+        <visual name="v3"><pose>-5 -2 1 0 0 0</pose><geometry><box><size>20 0.5 2</size></box></geometry><material><ambient>0.6 0.5 0.4 1</ambient></material></visual>
+        <collision name="c3"><pose>-5 -2 1 0 0 0</pose><geometry><box><size>20 0.5 2</size></box></geometry></collision>
+
+        <!-- Paredes verticales formando habitaciones -->
+        <!-- FIX: Pared acortada y movida para dejar una "puerta" abierta de 4m hacia el pasillo -->
+        <visual name="v4"><pose>5 12 1 0 0 1.5708</pose><geometry><box><size>6 0.5 2</size></box></geometry><material><ambient>0.6 0.5 0.4 1</ambient></material></visual>
+        <collision name="c4"><pose>5 12 1 0 0 1.5708</pose><geometry><box><size>6 0.5 2</size></box></geometry></collision>
+
+        <visual name="v5"><pose>-5 -8 1 0 0 1.5708</pose><geometry><box><size>14 0.5 2</size></box></geometry><material><ambient>0.6 0.5 0.4 1</ambient></material></visual>
+        <collision name="c5"><pose>-5 -8 1 0 0 1.5708</pose><geometry><box><size>14 0.5 2</size></box></geometry></collision>
+      </link>
+    </model>
+
+    <!-- OBJETIVO ROJO ESCONDIDO EN UNA HABITACIÓN -->
+    <model name="red_cylinder">
+      <static>true</static>
+      <!-- Está escondido en la habitación superior derecha -->
+      <pose>10 10 0.5 0 0 0</pose> 
+      <link name="link">
+        <collision name="collision"><geometry><cylinder><radius>0.4</radius><length>1.0</length></cylinder></geometry></collision>
+        <visual name="visual">
+          <geometry><cylinder><radius>0.4</radius><length>1.0</length></cylinder></geometry>
+          <material><ambient>1 0 0 1</ambient><diffuse>1 0 0 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+  </world>
+</sdf>

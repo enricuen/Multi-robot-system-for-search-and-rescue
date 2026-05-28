@@ -1,0 +1,5 @@
+terminal1 : ros2 launch robot_bringup mapping_sim.launch.py
+terminal2 : ros2 launch slam_toolbox online_async_launch.py slam_params_file:=$(pwd)/slam_config.yaml use_sim_time:=true
+terminal 3 : ros2 run teleop_twist_keyboard teleop_twist_keyboard --ros-args --remap cmd_vel:=/robot_0/cmd_vel
+#para ver el mapa en rviz introducir Map con topic /map
+terminal 4 (guardar el mapa) : ros2 run nav2_map_server map_saver_cli -f ~/Downloads/mi_nuevo_mapa --ros-args -p use_sim_time:=true

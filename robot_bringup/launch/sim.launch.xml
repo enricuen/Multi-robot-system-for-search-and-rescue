@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<launch>
+    <let name="world_path" 
+         value="$(find-pkg-share robot_bringup)/world/my_world.sdf" />
+    <let name="bridge_config_path" 
+         value="$(find-pkg-share robot_bringup)/config/bridge_config.yaml" />
+    <let name="urdf_path" 
+         value="$(find-pkg-share my_robot_description)/urdf/my_robot.urdf.xacro" />
+
+    <include file="$(find-pkg-share ros_gz_sim)/launch/gz_sim.launch.py">
+        <arg name="gz_args" value="-r $(var world_path)" />
+    </include>
+
+    <node pkg="robot_state_publisher" exec="robot_state_publisher">
+        <param name="robot_description"
+               value="$(command 'xacro $(var urdf_path)')" />
+        <param name="use_sim_time" value="true" />
+    </node>
+
+    <node pkg="ros_gz_bridge" exec="parameter_bridge">
+        <param name="config_file" value="$(var bridge_config_path)"/>
+    </node>
+
+    <node pkg="ros_gz_sim" exec="create" 
+          args="-topic robot_description -name my_robot -z 0.5" />
+</launch>

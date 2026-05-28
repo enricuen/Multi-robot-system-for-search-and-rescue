@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <xacro:arg name="prefix" default="" />
+
+    <joint name="$(arg prefix)laser_joint" type="fixed">
+        <parent link="$(arg prefix)base_link"/>
+        <child link="$(arg prefix)laser_frame"/>
+        <origin xyz="0.1 0 0.21" rpy="0 0 0"/>
+    </joint>
+
+    <link name="$(arg prefix)laser_frame">
+        <visual>
+            <geometry> <cylinder radius="0.05" length="0.04"/> </geometry>
+            <material name="black"/>
+        </visual>
+    </link>
+
+    <gazebo reference="$(arg prefix)laser_frame">
+        <sensor type="gpu_lidar" name="$(arg prefix)lidar">
+            <update_rate>10</update_rate>
+            <visualize>true</visualize>
+            
+            <topic>$(arg prefix)scan</topic>
+            
+            <gz_frame_id>$(arg prefix)laser_frame</gz_frame_id>
+            
+            <lidar>
+                <scan>
+                    <horizontal>
+                        <samples>640</samples>
+                        <resolution>1</resolution>
+                        <min_angle>-3.14</min_angle>
+                        <max_angle>3.14</max_angle>
+                    </horizontal>
+                </scan>
+                <range>
+                    <min>0.1</min>
+                    <max>10.0</max>
+                </range>
+            </lidar>
+        </sensor>
+    </gazebo>
+</robot>
