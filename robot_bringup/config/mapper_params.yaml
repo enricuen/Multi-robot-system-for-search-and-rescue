@@ -1,0 +1,8 @@
+slam_toolbox:
+  ros__parameters:
+    use_sim_time: true
+    odom_frame: world
+    map_frame: map
+    base_frame: robot_0/base_link
+    scan_topic: /robot_0/scan
+    mode: mapping

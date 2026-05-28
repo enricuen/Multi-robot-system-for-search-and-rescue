@@ -1,0 +1,156 @@
+amcl:
+  ros__parameters:
+    use_sim_time: true
+    base_frame_id: robot_2/base_link
+    odom_frame_id: robot_2/odom
+    global_frame_id: map
+    scan_topic: /robot_2/scan
+    laser_model_type: likelihood_field
+    min_particles: 500
+    max_particles: 2000
+    update_min_d: 0.1
+    update_min_a: 0.2
+
+local_costmap:
+  local_costmap:
+    ros__parameters:
+      use_sim_time: true
+      global_frame: robot_2/odom
+      robot_base_frame: robot_2/base_link
+      rolling_window: true
+      width: 5
+      height: 5
+      resolution: 0.05
+      robot_radius: 0.20
+      plugins: ["obstacle_layer", "inflation_layer"]
+      obstacle_layer:
+        plugin: "nav2_costmap_2d::ObstacleLayer"
+        observation_sources: lidar
+        lidar:
+          topic: /robot_2/scan
+          data_type: LaserScan
+          clearing: true
+          marking: true
+      inflation_layer:
+        plugin: "nav2_costmap_2d::InflationLayer"
+        inflation_radius: 0.6
+
+global_costmap:
+  global_costmap:
+    ros__parameters:
+      use_sim_time: true
+      global_frame: map
+      robot_base_frame: robot_2/base_link
+      resolution: 0.05
+      robot_radius: 0.20
+      plugins: ["static_layer", "obstacle_layer", "inflation_layer"]
+      static_layer:
+        plugin: "nav2_costmap_2d::StaticLayer"
+        map_topic: /robot_2/map
+        subscribe_to_updates: true
+      obstacle_layer:
+        plugin: "nav2_costmap_2d::ObstacleLayer"
+        observation_sources: lidar
+        lidar:
+          topic: /robot_2/scan
+          data_type: LaserScan
+          clearing: true
+          marking: true
+      inflation_layer:
+        plugin: "nav2_costmap_2d::InflationLayer"
+        inflation_radius: 0.6
+
+planner_server:
+  ros__parameters:
+    use_sim_time: true
+    robot_base_frame: robot_2/base_link
+    planner_plugins: ["GridBased"]
+    GridBased:
+      plugin: "nav2_navfn_planner::NavfnPlanner"
+
+controller_server:
+  ros__parameters:
+    use_sim_time: true
+    robot_base_frame: robot_2/base_link
+    controller_plugins: ["FollowPath"]
+    FollowPath:
+      plugin: "nav2_regulated_pure_pursuit_controller::RegulatedPurePursuitController"
+      desired_linear_vel: 0.4
+      lookahead_dist: 0.6
+
+smoother_server:
+  ros__parameters:
+    use_sim_time: true
+    robot_base_frame: robot_2/base_link
+    smoother_plugins: ["simple_smoother"]
+    simple_smoother:
+      plugin: "nav2_smoother::SimpleSmoother"
+
+bt_navigator:
+  ros__parameters:
+    use_sim_time: true
+    global_frame: map
+    robot_base_frame: robot_2/base_link
+    odom_topic: /robot_2/odom
+    default_bt_xml_filename: "/opt/ros/jazzy/share/nav2_bt_navigator/behavior_trees/navigate_to_pose_w_replanning_and_recovery.xml"
+
+waypoint_follower:
+  ros__parameters:
+    use_sim_time: true
+    robot_base_frame: robot_2/base_link
+
+collision_monitor:
+  ros__parameters:
+    use_sim_time: true
+    base_frame_id: robot_2/base_link
+    odom_frame_id: robot_2/odom
+    observation_sources: [scan]
+    scan:
+      type: scan
+      topic: /robot_2/scan
+    polygons: ["slowdown_zone", "stop_zone"]
+    slowdown_zone:
+      type: polygon
+      action_type: slowdown
+      points: "[[0.5,0.4],[0.5,-0.4],[-0.5,-0.4],[-0.5,0.4]]"
+      slowdown_ratio: 0.5
+    stop_zone:
+      type: polygon
+      action_type: stop
+      points: "[[0.3,0.25],[0.3,-0.25],[-0.3,-0.25],[-0.3,0.25]]"
+
+docking_server:
+  ros__parameters:
+    use_sim_time: true
+    controller_frequency: 50.0
+    initial_perception_timeout: 5.0
+    wait_charge_timeout: 5.0
+    dock_approach_timeout: 30.0
+    undock_linear_tolerance: 0.05
+    undock_angular_tolerance: 0.1
+    max_retries: 3
+    base_frame: "robot_2/base_link"
+    fixed_frame: "robot_2/odom"
+    dock_backwards: false
+    dock_prestaging_tolerance: 0.5
+    dock_plugins: ['simple_charging_dock']
+    simple_charging_dock:
+      plugin: 'opennav_docking::SimpleChargingDock'
+      docking_threshold: 0.05
+      staging_x_offset: -0.7
+      use_external_detection_pose: true
+      use_battery_status: false 
+      use_stall_detection: false 
+      external_detection_timeout: 1.0
+      external_detection_translation_x: -0.18
+      external_detection_translation_y: 0.0
+      external_detection_rotation_roll: -1.57
+      external_detection_rotation_pitch: -1.57
+      external_detection_rotation_yaw: 0.0
+      filter_coef: 0.1
+
+lifecycle_manager:
+  ros__parameters:
+    use_sim_time: true
+    autostart: true
+    node_names: ["map_server","amcl","planner_server","controller_server","bt_navigator","smoother_server"]

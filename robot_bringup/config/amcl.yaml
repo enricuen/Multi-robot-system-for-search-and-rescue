@@ -1,0 +1,13 @@
+amcl:
+  ros__parameters:
+    use_sim_time: false # En mvsim no hay /clock -> false. En Gazebo sí -> true
+    base_frame_id: base_link
+    odom_frame_id: odom
+    global_frame_id: map
+    scan_topic: /laser1  
+    laser_model_type: likelihood_field
+    min_particles: 500
+    max_particles: 2000
+    # si el sensor es denso y rápido, puedes subir update_min_d o update_min_a:
+    update_min_d: 0.1
+    update_min_a: 0.2
