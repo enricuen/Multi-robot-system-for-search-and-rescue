@@ -29,7 +29,7 @@ sudo apt install ros-jazzy-rclpy \
                  ros-jazzy-cv-bridge \
                  ros-jazzy-navigation2 \
                  ros-jazzy-nav2-bringup
-
+```
 ### Bibliotecas de Python
 El nodo requiere librerías para procesar las imágenes y ejecutar la red neuronal YOLO:
 
