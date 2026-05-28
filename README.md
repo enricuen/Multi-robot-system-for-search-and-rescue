@@ -38,7 +38,7 @@ pip3 install opencv-python numpy ultralytics --break-system-packages
 ```
 
 ## Lanzar y ejecutar el comportamiento
-* Paso 1: Lanzar la simulación (Gazebo + Nav2)
+* Paso 1: Lanzar la simulación
 
 ```bash
 colcon build
