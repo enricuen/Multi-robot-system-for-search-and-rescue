@@ -15,7 +15,7 @@ El sistema combina navegación autónoma descentralizada (**Nav2**), visión art
   </p>
 
 
-    * *Emergencia:* Despliegue automático y en solitario del "Robot ambulancia" hacia coordenadas de personas heridas.
+    * *Emergencia:* Despliegue automático y en solitario del robot ambulancia hacia coordenadas de personas heridas.
 
   <p align="center">
       <img width="347" height="250" alt="Screenshot from 2026-05-28 20-08-24" src="https://github.com/user-attachments/assets/13000639-faff-4572-86e4-bf650f25eb1e" />
