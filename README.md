@@ -1,2 +1,29 @@
 # Multi-robot-system-for-search-and-rescue
 Este repositorio contiene un nodo de ROS 2 en Python que simula e implementa un enjambre de robots colaborativos diseñado para misiones de búsqueda, localización y asistencia a víctimas.
+El sistema combina navegación autónoma descentralizada (**Nav2**), visión artificial mediante Deep Learning (**YOLOv8**), detección reactiva de obstáculos con LIDAR y una máquina de estados para la coordinación táctica de múltiples agentes (exploradores y ambulancia).
+
+## Características principales
+
+* **Arquitectura multiagente:** Despliegue de un enjambre escalable coordinado mediante una única máquina de estados descentralizada.
+* **Visión artificial local:** Integración de **YOLOv8** en cada nodo para la detección visual de víctimas (clase `person`) en tiempo real, generando un error de seguimiento (*Homing*).
+* **Navegación autónoma y evasión:** Uso de **Nav2** para la planificación de rutas globales hacia objetivos y un sistema de evasión puramente reactivo (LIDAR) como freno de emergencia anti-colisiones.
+* **Protocolos interactivos de rescate:** * *Aseguramiento:* Formación de un perímetro de vigilancia alrededor de víctimas a salvo.
+    * *Emergencia:* Despliegue automático y en solitario del "Robot ambulancia" hacia coordenadas de personas heridas.
+
+## Requisitos previos
+
+Para ejecutar este proyecto, es necesario un entorno de ROS 2 configurado junto con bibliotecas de visión e IA. Se asume el uso de **ROS 2 Jazzy**.
+
+### Bibliotecas del sistema y ROS 2
+Se ha de tener instalados los siguientes paquetes de ROS 2:
+
+```bash
+sudo apt update
+sudo apt install ros-<tu_distro>-rclpy \
+                 ros-<tu_distro>-geometry-msgs \
+                 ros-<tu_distro>-sensor-msgs \
+                 ros-<tu_distro>-nav2-msgs \
+                 ros-<tu_distro>-tf2-ros \
+                 ros-<tu_distro>-cv-bridge \
+                 ros-<tu_distro>-navigation2 \
+                 ros-<tu_distro>-nav2-bringup
