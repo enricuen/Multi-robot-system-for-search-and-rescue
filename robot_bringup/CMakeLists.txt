@@ -29,9 +29,6 @@ install(
 )
 install(
   PROGRAMS
-    src/leader_follower.py
-    src/red_detection.py
-    src/red_plus_follow.py
     src/esquinas.py
   DESTINATION lib/${PROJECT_NAME}
 )
