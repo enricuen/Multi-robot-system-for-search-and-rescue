@@ -50,6 +50,8 @@ pip3 install opencv-python numpy ultralytics --break-system-packages
 ## Lanzar y ejecutar el comportamiento
 * Paso 1: Lanzar la simulación
 
+Se puede especificar el número de robots gracias al parámetro num_robots, el número 5 es un ejemplo. Se puede probar con otros valores.
+
 ```bash
 colcon build
 source install/setup.bash
@@ -58,7 +60,7 @@ ros2 launch robot_bringup multirobot_sim.launch.py num_robots:=5
 * Paso 2: Ejecutar el nodo del comportamiento
 ```bash
 source install/setup.bash
-ros2 run robot_bringup esquinas.py
+ros2 run robot_bringup esquinas.py --ros-args -p num_robots:=5
 ```
 * Interacción con el sistema
 
