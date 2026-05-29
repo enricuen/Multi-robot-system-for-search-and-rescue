@@ -53,7 +53,7 @@ pip3 install opencv-python numpy ultralytics --break-system-packages
 ```bash
 colcon build
 source install/setup.bash
-ros2 launch robot_bringup multi_robot_sim_nav2.launch.py
+ros2 launch robot_bringup multirobot_sim.launch.py
 ```
 * Paso 2: Ejecutar el nodo del comportamiento
 ```bash
