@@ -399,14 +399,14 @@
         <visual name='visual'>
           <geometry>
             <mesh>
-              <uri>https://fuel.gazebosim.org/1.0/openrobotics/models/malevisitoronphone/2/files/meshes/MaleVisitorStatic.obj</uri>
+              <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/MaleVisitorOnPhone/tip/files/meshes/MaleVisitorStatic.obj</uri>
             </mesh>
           </geometry>
         </visual>
         <collision name='collision'>
           <geometry>
             <mesh>
-              <uri>https://fuel.gazebosim.org/1.0/openrobotics/models/malevisitoronphone/2/files/meshes/MaleVisitorStatic_Col.obj</uri>
+              <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/MaleVisitorOnPhone/tip/files/meshes/MaleVisitorStatic_Col.obj</uri>
             </mesh>
           </geometry>
         </collision>
@@ -450,14 +450,14 @@
         <collision name='collision'>
           <geometry>
             <mesh>
-              <uri>file:///home/quique/.gz/fuel/fuel.gazebosim.org/openrobotics/models/rescue randy sitting/8/meshes/rescue_randy.dae</uri>
+              <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Rescue%20Randy%20Sitting/tip/files/meshes/rescue_randy.dae</uri>
             </mesh>
           </geometry>
         </collision>
         <visual name='visual'>
           <geometry>
             <mesh>
-              <uri>file:///home/quique/.gz/fuel/fuel.gazebosim.org/openrobotics/models/rescue randy sitting/8/meshes/rescue_randy.dae</uri>
+              <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Rescue%20Randy%20Sitting/tip/files/meshes/rescue_randy.dae</uri>
             </mesh>
           </geometry>
         </visual>
