@@ -7,10 +7,33 @@ amcl:
     global_frame_id: map
     scan_topic: scan
     laser_model_type: likelihood_field
+    # Modelo de movimiento: tu robot es diferencial. AMCL lo necesita
+    # explicito; sin esto puede usar un default que no encaje.
+    robot_model_type: "nav2_amcl::DifferentialMotionModel"
     min_particles: 500
     max_particles: 2000
     update_min_d: 0.1
     update_min_a: 0.2
+    # --- LOCALIZACION AUTOMATICA (lo que faltaba) ---------------------
+    # set_initial_pose=true hace que AMCL arranque YA localizado con
+    # los valores de initial_pose, SIN necesidad de hacer el 2D Pose
+    # Estimate manual en RViz. El launch sobrescribe estos valores por
+    # robot con su pose de spawn real; estos son solo el placeholder /
+    # red de seguridad si la inyeccion del launch fallara.
+    set_initial_pose: true
+    # No reiniciar a la pose inicial en cada activacion (deja que AMCL
+    # siga corrigiendo con el laser tras arrancar).
+    always_reset_initial_pose: false
+    initial_pose:
+      x: 0.0
+      y: 0.0
+      z: 0.0
+      yaw: 0.0
+    # AMCL publica map -> odom: FALSE. El static_transform_publisher del
+    # launch hace esa tarea. AMCL usa set_initial_pose para conocer su
+    # posicion y planificar correctamente, pero NO publica TF para evitar
+    # el conflicto con el publicador estatico que da estabilidad al arranque.
+    tf_broadcast: false
 
 local_costmap:
   local_costmap:
