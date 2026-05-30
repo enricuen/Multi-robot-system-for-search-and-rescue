@@ -30,6 +30,10 @@ install(
 install(
   PROGRAMS
     src/esquinas.py
+    src/check_swarm.py
+    src/spawn_robot.py
+    src/map_relay_robusto.py
+    src/test_nav_goal.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
