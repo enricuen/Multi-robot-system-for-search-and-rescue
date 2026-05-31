@@ -59,9 +59,14 @@ DISPATCH_SECS = 10.0   # espera antes de mandar robots a esquinas.
                        # se lanza esquinas.py justo despues del launch.
 OBSTACLE_D    = 1.0    # m - umbral obstaculo para activar AVOIDING
 STOP_D        = 0.8    # m - umbral para parar en HOMING
-YOLO_CONF     = 0.5
+YOLO_CONF     = 0.3    # Bajado de 0.5 a 0.3 para detectar personas tumbadas
 YOLO_OBJ      = 'person'
 MAX_RETRIES   = 3      # reintentos si Nav2 aborta el goal de esquina
+
+# NUEVOS PARAMETROS PARA MEJORAR HOMING
+HOMING_TIMEOUT   = 60.0       # segundos tras los que forzar pregunta si no se ha parado
+BBOX_AREA_RATIO  = 0.15       # fracción del área de imagen que activa "cerca"
+LASER_FALLBACK_D = 1.0        # distancia del láser para forzar pregunta si se mantiene
 
 
 class SwarmNode(Node):
@@ -79,6 +84,7 @@ class SwarmNode(Node):
         # --- Utilidades ---
         self.bridge  = CvBridge()
         self.yolo    = YOLO('yolov8n.pt')
+        self.yolo.conf = YOLO_CONF  # Fijar umbral de confianza global
         self.tf_buf  = Buffer()
         self.tf_list = TransformListener(self.tf_buf, self)
         self._lock   = threading.Lock()
@@ -91,6 +97,10 @@ class SwarmNode(Node):
         self.patrol_idx   = {}
         self.gh           = {}   # goal handles activos
         self.corner_tries = {}   # reintentos de goal a esquina
+        
+        # NUEVOS: seguimiento de tiempo en HOMING
+        self.homing_start_time = {}
+        self.laser_close_start = {}
 
         self.busy    = set()
         self.ui_lock = False
@@ -112,6 +122,10 @@ class SwarmNode(Node):
             self.patrol_idx[i]   = 0
             self.gh[i]           = None
             self.corner_tries[i] = 0
+            
+            # Inicializar nuevas variables
+            self.homing_start_time[i] = None
+            self.laser_close_start[i] = None
 
             self.cpub[i] = self.create_publisher(Twist, f'/{n}/cmd_vel', 10)
             self.ypub[i] = self.create_publisher(
@@ -137,6 +151,26 @@ class SwarmNode(Node):
         self.get_logger().info(
             f'Swarm listo ({self.num_robots} robots). '
             f'Despachando a esquinas en {DISPATCH_SECS:.0f} s...')
+
+    # =========================================================
+    #  PREGUNTA AL USUARIO (EXTRAIDA PARA REUSAR)
+    # =========================================================
+    def _ask_user(self, rid):
+        """Lanza el hilo de pregunta al usuario por terminal."""
+        def ask():
+            print('\n' + '='*50)
+            resp = input(
+                f'[CENTRALITA] Robot {rid} en contacto. '
+                f"Victima 'herida' o 'a salvo'?: ").strip().lower()
+            print('='*50 + '\n')
+            if resp == 'herida':
+                self.get_logger().info('CODIGO ROJO. Ambulancia en camino.')
+                self._ambulance(rid)
+            else:
+                self.get_logger().info('Acordonando zona.')
+                self._cordon(rid)
+            self.ui_lock = False
+        threading.Thread(target=ask, daemon=True).start()
 
     # =========================================================
     #  DESPACHO A ESQUINAS
@@ -351,25 +385,36 @@ class SwarmNode(Node):
         fr    = r[ok & front]
         mf    = float(np.min(fr)) if len(fr) else 10.0
 
-        if st == 'HOMING' and mf < STOP_D:
-            self.state[rid] = 'STOPPED_AT_TARGET'
+        if st == 'HOMING':
+            # Mecanismo 1: láser directo detecta persona cercana
+            if mf < STOP_D:
+                self.get_logger().info(f'Robot {rid}: láser detecta persona a {mf:.2f}m.')
+                self.state[rid] = 'STOPPED_AT_TARGET'
+                self._ask_user(rid)
+                return
 
-            def ask():
-                print('\n' + '='*50)
-                resp = input(
-                    f'[CENTRALITA] Robot {rid} en contacto. '
-                    f"Victima 'herida' o 'a salvo'?: ").strip().lower()
-                print('='*50 + '\n')
-                if resp == 'herida':
-                    self.get_logger().info('CODIGO ROJO. Ambulancia en camino.')
-                    self._ambulance(rid)
-                else:
-                    self.get_logger().info('Acordonando zona.')
-                    self._cordon(rid)
-                self.ui_lock = False
+            # Mecanismo 2: si el láser detecta algo a menos de LASER_FALLBACK_D durante >1 s
+            if mf < LASER_FALLBACK_D:
+                now = self.get_clock().now().seconds_nanoseconds()[0]
+                if self.laser_close_start[rid] is None:
+                    self.laser_close_start[rid] = now
+                elif now - self.laser_close_start[rid] > 1.0:
+                    self.get_logger().warn(f'Robot {rid}: láser detecta obstáculo cercano sostenido. Forzando parada.')
+                    self.state[rid] = 'STOPPED_AT_TARGET'
+                    self._ask_user(rid)
+                    return
+            else:
+                self.laser_close_start[rid] = None
 
-            threading.Thread(target=ask, daemon=True).start()
-            return
+            # Mecanismo 3: timeout - si lleva demasiado tiempo en HOMING
+            start = self.homing_start_time[rid]
+            if start is not None:
+                now = self.get_clock().now().seconds_nanoseconds()[0]
+                if now - start > HOMING_TIMEOUT:
+                    self.get_logger().warn(f'Robot {rid}: timeout en HOMING ({HOMING_TIMEOUT}s). Se fuerza pregunta.')
+                    self.state[rid] = 'STOPPED_AT_TARGET'
+                    self._ask_user(rid)
+                    return
 
         if st == 'WANDERING' and mg < OBSTACLE_D:
             self.state[rid] = 'AVOIDING'
@@ -433,11 +478,26 @@ class SwarmNode(Node):
                             self.gh[rid].cancel_goal_async()
                             self.gh[rid] = None
                         self.state[rid] = 'HOMING'
+                        # Guardar tiempo de inicio de HOMING
+                        self.homing_start_time[rid] = self.get_clock().now().seconds_nanoseconds()[0]
+                        self.laser_close_start[rid] = None
                         self.get_logger().info(
                             f'Robot {rid}: PERSONA DETECTADA. HOMING.')
 
                 if self.state[rid] == 'HOMING':
-                    x1, _, x2, _ = persona.xyxy[0].cpu().numpy()
+                    x1, y1, x2, y2 = persona.xyxy[0].cpu().numpy()
+                    # Calcular área de la bounding box
+                    area = (x2 - x1) * (y2 - y1)
+                    img_area = img.shape[0] * img.shape[1]
+                    
+                    # Mecanismo 4: área grande indica proximidad extrema
+                    if area / img_area > BBOX_AREA_RATIO:
+                        self.get_logger().info(f'Robot {rid}: persona muy cerca por área de caja ({area/img_area:.1%}).')
+                        self.state[rid] = 'STOPPED_AT_TARGET'
+                        self._ask_user(rid)
+                        return
+                    
+                    # Control de dirección normal
                     c = (x1 + x2) / 2.0
                     self.target_err[rid] = float(
                         (c - img.shape[1]/2) / (img.shape[1]/2))
@@ -501,7 +561,7 @@ class SwarmNode(Node):
                     self.state[i] = 'WANDERING'
 
             elif st == 'HOMING':
-                twist.linear.x  =  0.35
+                twist.linear.x  =  0.5   # Aumentado de 0.35 a 0.5
                 twist.angular.z = -0.5 * self.target_err[i]
 
             self.cpub[i].publish(twist)
