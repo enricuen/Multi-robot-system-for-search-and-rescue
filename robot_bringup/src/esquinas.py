@@ -43,8 +43,8 @@ ESQUINAS = {
     4: (-13.0, -13.0),   # SO
 }
 
-# Patrulla LOCAL: 2 puntos cerca de la esquina asignada, a ~3-4 m hacia
-# el interior. Cada robot solo usa SUS puntos -> sin cruces entre robots.
+# Patrulla LOCAL: 2 puntos cerca de la esquina asignada, a 3-4 m hacia
+# el interior. Cada robot solo usa sus puntos -> sin cruces entre robots.
 PATROL = {
     1: [(-10.0,  10.0), (-8.0,  8.0)],
     2: [( 10.0,  10.0), ( 8.0,  8.0)],
@@ -52,20 +52,18 @@ PATROL = {
     4: [(-10.0, -10.0), (-8.0, -8.0)],
 }
 
-SCAN_SECS     = 13.0   # duracion del barrido (360 deg a 0.5 rad/s = 12.6 s)
+SCAN_SECS     = 13.0   # duracion del barrido
 SCAN_W        = 0.5    # velocidad angular del barrido (rad/s)
 DISPATCH_SECS = 10.0   # espera antes de mandar robots a esquinas.
                        # 10 s da margen para que Nav2 este listo cuando
                        # se lanza esquinas.py justo despues del launch.
 OBSTACLE_D    = 1.0    # m - umbral obstaculo para activar AVOIDING
 STOP_D        = 0.8    # m - umbral para parar en HOMING
-YOLO_CONF     = 0.3    # Bajado de 0.5 a 0.3 para detectar personas tumbadas
+YOLO_CONF     = 0.3    # Bajado para detectar personas tumbadas
 YOLO_OBJ      = 'person'
 MAX_RETRIES   = 3      # reintentos si Nav2 aborta el goal de esquina
-
-# NUEVOS PARAMETROS PARA MEJORAR HOMING
-HOMING_TIMEOUT   = 60.0       # segundos tras los que forzar pregunta si no se ha parado
-BBOX_AREA_RATIO  = 0.15       # fracción del área de imagen que activa "cerca"
+HOMING_TIMEOUT   = 60.0       # segundos tras los que forzar pregunta si no se ha parado porque tarda bastante en llegar 
+BBOX_AREA_RATIO  = 0.15       # fracción del área de imagen que activa cerca
 LASER_FALLBACK_D = 1.0        # distancia del láser para forzar pregunta si se mantiene
 
 
@@ -77,7 +75,7 @@ class SwarmNode(Node):
         self.num_robots = self.get_parameter('num_robots').value
 
         # --- Callback groups ---
-        self.cbg_r = ReentrantCallbackGroup()         # acciones / timers
+        self.cbg_r = ReentrantCallbackGroup()         # acciones
         self.cbg_s = MutuallyExclusiveCallbackGroup() # sensores
         self.cbg_t = MutuallyExclusiveCallbackGroup() # control loop
 
@@ -98,7 +96,7 @@ class SwarmNode(Node):
         self.gh           = {}   # goal handles activos
         self.corner_tries = {}   # reintentos de goal a esquina
         
-        # NUEVOS: seguimiento de tiempo en HOMING
+        # seguimiento de tiempo en HOMING
         self.homing_start_time = {}
         self.laser_close_start = {}
 
@@ -144,7 +142,7 @@ class SwarmNode(Node):
 
         self.create_timer(0.1, self._loop, callback_group=self.cbg_t)
 
-        # Timer de despacho: espera DISPATCH_SECS antes de mandar a esquinas
+        # Timer -> espera DISPATCH_SECS antes de mandar a esquinas
         self._dt = self.create_timer(
             DISPATCH_SECS, self._go_corners, callback_group=self.cbg_r)
 
@@ -152,9 +150,7 @@ class SwarmNode(Node):
             f'Swarm listo ({self.num_robots} robots). '
             f'Despachando a esquinas en {DISPATCH_SECS:.0f} s...')
 
-    # =========================================================
-    #  PREGUNTA AL USUARIO (EXTRAIDA PARA REUSAR)
-    # =========================================================
+    #  PREGUNTA AL USUARIO
     def _ask_user(self, rid):
         """Lanza el hilo de pregunta al usuario por terminal."""
         def ask():
@@ -172,13 +168,10 @@ class SwarmNode(Node):
             self.ui_lock = False
         threading.Thread(target=ask, daemon=True).start()
 
-    # =========================================================
-    #  DESPACHO A ESQUINAS
-    # =========================================================
+    #  LANZAMIENTO A ESQUINAS
     def _go_corners(self):
         """Manda todos los robots a su esquina en hilos separados.
-        Cada hilo espera a que Nav2 este listo antes de enviar el goal,
-        sin crear timers en cascada que saturan el sistema."""
+        Cada hilo espera a que Nav2 este listo antes de enviar el goal"""
         self._dt.cancel()
         for rid in range(1, self.num_robots):
             threading.Thread(
@@ -203,7 +196,7 @@ class SwarmNode(Node):
         import time as _time
         _time.sleep(2.0)
         if self.state[rid] != 'NAVIGATING_CORNERS':
-            return  # Estado cambio mientras esperabamos
+            return  # Estado cambio
         x, y = ESQUINAS[rid]
         yaw  = math.atan2(-y, -x)
         ok   = self._nav(rid, x, y, math.cos(yaw/2), math.sin(yaw/2))
@@ -216,9 +209,7 @@ class SwarmNode(Node):
                 target=self._wait_and_send_corner,
                 args=(rid,), daemon=True).start()
 
-    # =========================================================
-    #  NAV2 - envio de goal
-    # =========================================================
+    #  NAV2 - envío de goal
     def _nav(self, rid, x, y, w=1.0, z=0.0):
         c = self.client[rid]
         if not c.server_is_ready():
@@ -262,7 +253,7 @@ class SwarmNode(Node):
             status = 6
         self.gh[rid] = None
 
-        # --- Ambulancia ---
+        #  Ambulancia 
         if rid == 0:
             self.state[0] = 'STATIONARY_AMBULANCE'
             with self._lock:
@@ -273,7 +264,7 @@ class SwarmNode(Node):
 
         st = self.state[rid]
 
-        # --- Llego a la esquina ---
+        #  Llega a la esquina 
         if st == 'NAVIGATING_CORNERS':
             if status == 4:
                 self.corner_tries[rid] = 0
@@ -301,14 +292,14 @@ class SwarmNode(Node):
                     self.corner_tries[rid] = 0
                     self.state[rid] = 'WANDERING'
 
-        # --- Llego a waypoint de patrulla ---
+        #  Llega a waypoint de patrulla 
         elif st == 'WANDERING':
             pts = PATROL.get(rid, [])
             if pts:
                 self.patrol_idx[rid] = (
                     (self.patrol_idx[rid] + 1) % len(pts))
 
-        # --- Llego junto a la persona (acordonamiento) ---
+        #  Llega junto a la persona (acordonamiento) 
         elif st == 'NAVIGATING_TO_LEADER':
             self.state[rid] = 'STOPPED_AT_TARGET'
 
@@ -318,9 +309,7 @@ class SwarmNode(Node):
                 f'Robot {rid}: barrido completo. Iniciando patrulla local.')
             self.state[rid] = 'WANDERING'
 
-    # =========================================================
     #  RESCATE
-    # =========================================================
     def _ambulance(self, leader_id):
         try:
             with self._lock:
@@ -365,9 +354,7 @@ class SwarmNode(Node):
         except Exception as e:
             self.get_logger().warn(f'cordon err: {e}')
 
-    # =========================================================
     #  SENSORES
-    # =========================================================
     def _scan(self, msg, rid):
         st = self.state[rid]
         if st in ('NAVIGATING_CORNERS', 'NAVIGATING_TO_LEADER',
@@ -406,7 +393,7 @@ class SwarmNode(Node):
             else:
                 self.laser_close_start[rid] = None
 
-            # Mecanismo 3: timeout - si lleva demasiado tiempo en HOMING
+            # Mecanismo 3: timeout (si lleva demasiado tiempo en HOMING)
             start = self.homing_start_time[rid]
             if start is not None:
                 now = self.get_clock().now().seconds_nanoseconds()[0]
@@ -447,7 +434,7 @@ class SwarmNode(Node):
 
                 if st in ('WANDERING', 'SCANNING_CORNER',
                           'NAVIGATING_CORNERS') and not self.ui_lock:
-                    # Verificar que no hay otro robot busy cerca
+                    # Verificar que no hay otro robot cerca
                     cerca = False
                     try:
                         t1 = self.tf_buf.lookup_transform(
@@ -503,32 +490,23 @@ class SwarmNode(Node):
                         (c - img.shape[1]/2) / (img.shape[1]/2))
 
             else:
-                # Sin persona visible
+                # No persona visible
                 if st == 'HOMING':
-                    # NO cancelamos HOMING por falta de deteccion.
-                    # Cuando el robot esta muy cerca, YOLO pierde la
-                    # persona (ve solo piernas/suelo). El robot ya se
-                    # comprometio: sigue avanzando recto hasta que el
-                    # laser confirme proximidad (STOP_D) en _scan.
-                    # Solo cancelamos si llevamos mucho tiempo sin verla
-                    # Y el robot no ha avanzado (posible falsa alarma lejana).
+                    # no se cancela HOMING por falta de deteccion. Cuando el robot está muy cerca YOLO pierde la persona (ve solo piernas).
                     if self.patience[rid] > 0:
                         self.patience[rid] -= 1
                     # Con patience=0 mantenemos HOMING igualmente:
-                    # el laser parara al robot cuando llegue.
-
+      
         except Exception as e:
             self.get_logger().debug(f'img {rid}: {e}')
 
-    # =========================================================
-    #  CONTROL LOOP  (10 Hz)
-    # =========================================================
+    #  BUCLE DE CONTROL
     def _loop(self):
         for i in range(self.num_robots):
             st    = self.state[i]
             twist = Twist()
 
-            # Nav2 al mando: no tocamos cmd_vel
+            # Nav2 manda: no se modifica cmd_vel
             if st in ('NAVIGATING_CORNERS', 'NAVIGATING_TO_LEADER',
                       'RETURNING_TO_BASE'):
                 continue
@@ -561,7 +539,7 @@ class SwarmNode(Node):
                     self.state[i] = 'WANDERING'
 
             elif st == 'HOMING':
-                twist.linear.x  =  0.5   # Aumentado de 0.35 a 0.5
+                twist.linear.x  =  0.5
                 twist.angular.z = -0.5 * self.target_err[i]
 
             self.cpub[i].publish(twist)
